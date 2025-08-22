@@ -1,6 +1,5 @@
 package com.openclassrooms.tourguide.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -20,8 +19,7 @@ public class RewardsService {
 	// proximity in miles
     private final int defaultProximityBuffer = 10;
 	private int proximityBuffer = defaultProximityBuffer;
-	private int attractionProximityRange = 200;
-	private final GpsUtil gpsUtil;
+    private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
 	
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
@@ -33,12 +31,8 @@ public class RewardsService {
 		this.proximityBuffer = proximityBuffer;
 	}
 	
-	public void setDefaultProximityBuffer() {
-		proximityBuffer = defaultProximityBuffer;
-	}
-	
 	public void calculateRewards(final User user) {
-		List<VisitedLocation> userLocations = new ArrayList<>(user.getVisitedLocations());
+		List<VisitedLocation> userLocations = List.copyOf(user.getVisitedLocations());
 		List<Attraction> attractions = gpsUtil.getAttractions();
 		
 		for(VisitedLocation visitedLocation : userLocations) {
@@ -53,14 +47,15 @@ public class RewardsService {
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
-		return getDistance(attraction, location) <= attractionProximityRange;
+        int attractionProximityRange = 200;
+        return getDistance(attraction, location) <= attractionProximityRange;
 	}
 
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(visitedLocation.location, new Location(attraction.latitude, attraction.longitude)) <= proximityBuffer;
 	}
 	
-	private int getRewardPoints(Attraction attraction, User user) {
+	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
 	

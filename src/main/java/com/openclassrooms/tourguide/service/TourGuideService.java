@@ -1,5 +1,6 @@
 package com.openclassrooms.tourguide.service;
 
+import com.openclassrooms.tourguide.dto.NearbyAttractionsDTO;
 import com.openclassrooms.tourguide.helper.InternalTestHelper;
 import com.openclassrooms.tourguide.tracker.Tracker;
 import com.openclassrooms.tourguide.user.User;
@@ -8,7 +9,6 @@ import com.openclassrooms.tourguide.user.UserReward;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import gpsUtil.GpsUtil;
-import gpsUtil.location.Attraction;
 import gpsUtil.location.Location;
 import gpsUtil.location.VisitedLocation;
 
@@ -35,7 +34,7 @@ public class TourGuideService {
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
-		
+
 		Locale.setDefault(Locale.US);
 
 		if (testMode) {
@@ -88,7 +87,7 @@ public class TourGuideService {
 		return visitedLocation;
 	}
 
-	public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
+	public List<NearbyAttractionsDTO> getNearByAttractions(VisitedLocation visitedLocation, String userName) {
 		return gpsUtil.getAttractions().stream()
 				.sorted(Comparator.comparingDouble(
 						attraction -> rewardsService.getDistance(
@@ -97,7 +96,17 @@ public class TourGuideService {
 						)
 				))
 				.limit(5)
-				.collect(Collectors.toList());
+				.map(attraction -> new NearbyAttractionsDTO(
+							attraction.attractionName,
+							attraction.longitude,
+							attraction.latitude,
+							visitedLocation.location.longitude,
+							visitedLocation.location.latitude,
+							rewardsService.getDistance(
+									visitedLocation.location,
+									new Location(attraction.latitude, attraction.longitude)),
+							rewardsService.getRewardPoints(attraction, getUser(userName))
+					)).toList();
 	}
 
 	private void addShutDownHook() {
@@ -109,9 +118,9 @@ public class TourGuideService {
 	}
 
 	/**********************************************************************************
-	 * 
+	 *
 	 * Methods Below: For Internal Testing
-	 * 
+	 *
 	 **********************************************************************************/
 	private static final String tripPricerApiKey = "test-server-api-key";
 	// Database connection will be used for external users, but for testing purposes
