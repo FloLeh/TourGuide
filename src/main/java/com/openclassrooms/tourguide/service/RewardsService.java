@@ -1,6 +1,9 @@
 package com.openclassrooms.tourguide.service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Service;
 
@@ -30,20 +33,29 @@ public class RewardsService {
 	public void setProximityBuffer(int proximityBuffer) {
 		this.proximityBuffer = proximityBuffer;
 	}
-	
+
+	private final ExecutorService executor = Executors.newFixedThreadPool(
+			Runtime.getRuntime().availableProcessors() * 4
+	);
+
+	public void asyncCalculateAllUsersRewards(List<User> users) {
+		List<CompletableFuture<Void>> futures = users.stream()
+				.map(user ->
+					CompletableFuture.runAsync(() -> calculateRewards(user), executor)
+				).toList();
+
+		futures.forEach(CompletableFuture::join);
+	}
+
 	public void calculateRewards(final User user) {
 		List<VisitedLocation> userLocations = List.copyOf(user.getVisitedLocations());
 		List<Attraction> attractions = gpsUtil.getAttractions();
-		
-		for(VisitedLocation visitedLocation : userLocations) {
-			for(Attraction attraction : attractions) {
-				if(user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName))) {
-					if(nearAttraction(visitedLocation, attraction)) {
-						user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-					}
-				}
-			}
-		}
+
+		attractions.stream()
+			.filter(attraction -> user.getUserRewards().stream().noneMatch(r -> r.attraction.attractionName.equals(attraction.attractionName)))
+			.forEach(attraction -> userLocations.stream()
+                .filter(visitedLocation -> nearAttraction(visitedLocation, attraction))
+                .forEach(visitedLocation -> user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)))));
 	}
 	
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {

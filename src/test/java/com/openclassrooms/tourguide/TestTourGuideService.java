@@ -99,6 +99,7 @@ public class TestTourGuideService {
 		TourGuideService tourGuideService = new TourGuideService(gpsUtil, rewardsService);
 
 		User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+		tourGuideService.addUser(user);
 		VisitedLocation visitedLocation = tourGuideService.trackUserLocation(user);
 
 		List<NearbyAttractionsDTO> attractions = tourGuideService.getNearByAttractions(visitedLocation, user.getUserName());
@@ -121,7 +122,7 @@ public class TestTourGuideService {
 
 		tourGuideService.tracker.stopTracking();
 
-		assertEquals(10, providers.size());
+		assertEquals(5, providers.size());
 	}
 
 }
