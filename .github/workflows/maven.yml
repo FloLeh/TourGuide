@@ -34,4 +34,12 @@ jobs:
           mvn install:install-file -Dfile=libs/TripPricer.jar -DgroupId=tripPricer -DartifactId=tripPricer -Dversion=1.0.0 -Dpackaging=jar
 
     - name: Build with Maven and run tests
-      run: mvn clean verify -B -Dsurefire.printSummary=true
+      run: mvn clean verify
+
+    - name: Publish test results in GitHub UI
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: JUnit Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
