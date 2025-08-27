@@ -42,10 +42,8 @@ jobs:
 
     - name: Publish test results in GitHub UI
       if: always()
-      uses: EnricoMi/publish-unit-test-result-action@v2
+      uses: dorny/test-reporter@v1
       with:
-        junit_files: "target/surefire-reports/*.xml"
-        check_name: "Test Results"
-        comment_mode: off   # évite de commenter les PR si tu ne veux pas
-        report_individual_runs: true  # force l'affichage de chaque test
-        detailed_summary: true        # inclut les durées dans le résumé
+        name: JUnit Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
