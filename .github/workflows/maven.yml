@@ -35,9 +35,4 @@ jobs:
 
     - name: Build with Maven and run tests
       run: mvn --batch-mode --update-snapshots verify
-    - run: mkdir staging && cp target/*.jar staging
-    - uses: actions/upload-artifact@v4
-      with:
-        name: Package
-        path: staging
 
