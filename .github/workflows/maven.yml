@@ -42,8 +42,6 @@ jobs:
 
     - name: Publish test results in GitHub UI
       if: always()
-      uses: dorny/test-reporter@v1
+      uses: EnricoMi/publish-unit-test-result-action@v2
       with:
-        name: JUnit Tests
-        path: target/surefire-reports/*.xml
-        reporter: java-junit
+        junit_files: "target/surefire-reports/*.xml"
