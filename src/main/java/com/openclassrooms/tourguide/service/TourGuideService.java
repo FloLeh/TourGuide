@@ -34,6 +34,10 @@ public class TourGuideService {
 	public final Tracker tracker;
 	boolean testMode = true;
 
+	private final ExecutorService executor = Executors.newFixedThreadPool(
+			Runtime.getRuntime().availableProcessors() * 4
+	);
+
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
 		this.rewardsService = rewardsService;
@@ -83,19 +87,9 @@ public class TourGuideService {
 		return providers;
 	}
 
-	private final ExecutorService executor = Executors.newFixedThreadPool(
-			Runtime.getRuntime().availableProcessors() * 4
-	);
-
 	public void asyncTrackUsersLocation(List<User> users) {
-
-		List<CompletableFuture<VisitedLocation>> futures = users.stream()
-				.map(user -> CompletableFuture.supplyAsync(() -> {
-					VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
-					user.addToVisitedLocations(visitedLocation);
-					rewardsService.calculateRewards(user);
-					return visitedLocation;
-				}, executor))
+		List<CompletableFuture<VisitedLocation>> futures = users.parallelStream()
+				.map(user -> CompletableFuture.supplyAsync(() -> trackUserLocation(user), executor))
 				.toList();
 
 		futures.forEach(CompletableFuture::join);

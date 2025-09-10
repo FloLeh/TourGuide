@@ -24,22 +24,22 @@ public class RewardsService {
 	private int proximityBuffer = defaultProximityBuffer;
     private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
-	
-	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
-		this.gpsUtil = gpsUtil;
-		this.rewardsCentral = rewardCentral;
-	}
-	
-	public void setProximityBuffer(int proximityBuffer) {
-		this.proximityBuffer = proximityBuffer;
-	}
 
 	private final ExecutorService executor = Executors.newFixedThreadPool(
 			Runtime.getRuntime().availableProcessors() * 4
 	);
 
+	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
+		this.gpsUtil = gpsUtil;
+		this.rewardsCentral = rewardCentral;
+	}
+
+	public void setProximityBuffer(int proximityBuffer) {
+		this.proximityBuffer = proximityBuffer;
+	}
+
 	public void asyncCalculateAllUsersRewards(List<User> users) {
-		List<CompletableFuture<Void>> futures = users.stream()
+		List<CompletableFuture<Void>> futures = users.parallelStream()
 				.map(user ->
 					CompletableFuture.runAsync(() -> calculateRewards(user), executor)
 				).toList();
@@ -57,7 +57,7 @@ public class RewardsService {
                 .filter(visitedLocation -> nearAttraction(visitedLocation, attraction))
                 .forEach(visitedLocation -> user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)))));
 	}
-	
+
 	public boolean isWithinAttractionProximity(Attraction attraction, Location location) {
         int attractionProximityRange = 200;
         return getDistance(attraction, location) <= attractionProximityRange;
@@ -66,11 +66,11 @@ public class RewardsService {
 	private boolean nearAttraction(VisitedLocation visitedLocation, Attraction attraction) {
 		return getDistance(visitedLocation.location, new Location(attraction.latitude, attraction.longitude)) <= proximityBuffer;
 	}
-	
+
 	public int getRewardPoints(Attraction attraction, User user) {
 		return rewardsCentral.getAttractionRewardPoints(attraction.attractionId, user.getUserId());
 	}
-	
+
 	public double getDistance(Location loc1, Location loc2) {
         double lat1 = Math.toRadians(loc1.latitude);
         double lon1 = Math.toRadians(loc1.longitude);
