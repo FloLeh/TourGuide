@@ -34,8 +34,7 @@ public class TourGuideService {
 	public final Tracker tracker;
 	boolean testMode = true;
 
-	private final int threads = Math.max(4, Runtime.getRuntime().availableProcessors() * 2);
-	private final ExecutorService executor = Executors.newFixedThreadPool(threads);
+	private final ExecutorService executor = Executors.newFixedThreadPool(32);
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
@@ -91,7 +90,7 @@ public class TourGuideService {
 				.map(user -> CompletableFuture.supplyAsync(() -> trackUserLocation(user), executor))
 				.toList();
 
-		futures.forEach(CompletableFuture::join);
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 	}
 
 	public VisitedLocation trackUserLocation(User user) {

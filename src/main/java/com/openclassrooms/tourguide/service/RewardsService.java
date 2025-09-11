@@ -25,8 +25,7 @@ public class RewardsService {
     private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
 
-	private final int threads = Math.max(4, Runtime.getRuntime().availableProcessors() * 2);
-	private final ExecutorService executor = Executors.newFixedThreadPool(threads);
+	private final ExecutorService executor = Executors.newFixedThreadPool(32);
 
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		this.gpsUtil = gpsUtil;
@@ -43,7 +42,7 @@ public class RewardsService {
 					CompletableFuture.runAsync(() -> calculateRewards(user), executor)
 				).toList();
 
-		futures.forEach(CompletableFuture::join);
+		CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 	}
 
 	public void calculateRewards(final User user) {
