@@ -34,7 +34,7 @@ public class TourGuideService {
 	public final Tracker tracker;
 	boolean testMode = true;
 
-	private final ExecutorService executor = Executors.newFixedThreadPool(32);
+	private final ExecutorService executor = Executors.newFixedThreadPool(64);
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
 		this.gpsUtil = gpsUtil;
