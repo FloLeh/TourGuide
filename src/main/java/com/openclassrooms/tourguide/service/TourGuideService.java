@@ -34,7 +34,7 @@ public class TourGuideService {
 	public final Tracker tracker;
 	boolean testMode = true;
 
-	private final int threads = Math.max(8, Runtime.getRuntime().availableProcessors() * 4);
+	private final int threads = Math.max(4, Runtime.getRuntime().availableProcessors() * 2);
 	private final ExecutorService executor = Executors.newFixedThreadPool(threads);
 
 	public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
