@@ -25,9 +25,8 @@ public class RewardsService {
     private final GpsUtil gpsUtil;
 	private final RewardCentral rewardsCentral;
 
-	private final ExecutorService executor = Executors.newFixedThreadPool(
-			Runtime.getRuntime().availableProcessors() * 4
-	);
+	private final int threads = Math.max(8, Runtime.getRuntime().availableProcessors() * 4);
+	private final ExecutorService executor = Executors.newFixedThreadPool(threads);
 
 	public RewardsService(GpsUtil gpsUtil, RewardCentral rewardCentral) {
 		this.gpsUtil = gpsUtil;
