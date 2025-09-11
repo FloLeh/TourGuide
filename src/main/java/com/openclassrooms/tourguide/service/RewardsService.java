@@ -37,7 +37,7 @@ public class RewardsService {
 	}
 
 	public void asyncCalculateAllUsersRewards(List<User> users) {
-		List<CompletableFuture<Void>> futures = users.stream()
+		List<CompletableFuture<Void>> futures = users.parallelStream()
 				.map(user ->
 					CompletableFuture.runAsync(() -> calculateRewards(user), executor)
 				).toList();
